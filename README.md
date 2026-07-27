@@ -42,11 +42,12 @@ Monorepo: `/backend` (Spring Boot) and `/frontend` (React).
 
 ## Frontend
 
-*React 19 · TypeScript · Vite*
+*React 19 · TypeScript · Vite · Tailwind CSS*
 
 - Course list → course detail (with lessons) → inline enrollment form.
 - API layer isolated under `src/api`, typed end-to-end against the backend's DTOs.
 - Plain `useState`/`useEffect`, no external state library — the app is small enough not to need one.
+- CEFR level badges color-coded by tier (beginner/intermediate/advanced), Fraunces/Inter type pairing.
 
 ---
 
