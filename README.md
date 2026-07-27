@@ -93,6 +93,7 @@ fly secrets set \
   SPRING_DATASOURCE_URL=jdbc:mysql://english-academy-db.internal:3306/english_academy \
   SPRING_DATASOURCE_USERNAME=english_academy \
   SPRING_DATASOURCE_PASSWORD=<same-as-MYSQL_PASSWORD-above> \
+  APP_CORS_ALLOWED-ORIGINS=https://<your-netlify-site>.netlify.app \
   -a english-academy-api
 fly deploy -a english-academy-api
 
