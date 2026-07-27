@@ -1,0 +1,19 @@
+# Fly.io app config for a self-hosted MySQL instance (Render has no managed
+# MySQL, so this runs the official image directly with a persistent volume).
+# `app` must be globally unique — pick your own name and update it here.
+# No [http_service]/[[services]] block on purpose: this app is reachable only
+# from other Fly apps in the same org, over the private network, at
+# <app-name>.internal:3306 — never exposed publicly.
+app = "english-academy-db"
+primary_region = "mad"
+
+[build]
+  image = "mysql:8.4"
+
+[mounts]
+  source = "mysql_data"
+  destination = "/var/lib/mysql"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

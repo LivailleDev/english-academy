@@ -70,9 +70,45 @@ mvn verify    # unit + integration tests (needs Docker for Testcontainers)
 
 ---
 
+## Deployment
+
+Not live yet — currently run locally via the instructions above. The plan below (Fly.io for backend + self-hosted MySQL, Netlify for the frontend) is ready to execute whenever there's a Fly.io account with billing set up; Fly requires a card on file even for free-tier usage. Files are already in place (`backend/Dockerfile`, `backend/fly.toml`, `deploy/mysql/fly.toml`).
+
+```bash
+# one-time: authenticate
+fly auth login
+
+# 1. MySQL app — persistent volume + private-only (no public exposure)
+cd deploy/mysql
+fly apps create english-academy-db          # pick a globally-unique name, update fly.toml to match
+fly volumes create mysql_data --size 1 --region mad -a english-academy-db
+fly secrets set MYSQL_DATABASE=english_academy MYSQL_USER=english_academy \
+  MYSQL_PASSWORD=<choose-one> MYSQL_ROOT_PASSWORD=<choose-one> -a english-academy-db
+fly deploy -a english-academy-db
+
+# 2. Backend API
+cd ../../backend
+fly apps create english-academy-api         # pick a globally-unique name, update fly.toml to match
+fly secrets set \
+  SPRING_DATASOURCE_URL=jdbc:mysql://english-academy-db.internal:3306/english_academy \
+  SPRING_DATASOURCE_USERNAME=english_academy \
+  SPRING_DATASOURCE_PASSWORD=<same-as-MYSQL_PASSWORD-above> \
+  -a english-academy-api
+fly deploy -a english-academy-api
+
+# 3. Frontend — Netlify (via the Netlify CLI or dashboard)
+cd ../frontend
+# set VITE_API_BASE_URL to https://english-academy-api.fly.dev/api in Netlify's env vars, then:
+npm run build   # publish dist/
+```
+
+App names above are placeholders — Fly app names are globally unique, so pick your own and update the `app` field in `backend/fly.toml` and `deploy/mysql/fly.toml` to match.
+
+---
+
 ## Tech stack
 
-Java 17 · Spring Boot · MySQL · Flyway · Testcontainers · React · TypeScript · Vite · GitHub Actions
+Java 17 · Spring Boot · MySQL · Flyway · Testcontainers · React · TypeScript · Vite · Fly.io · Netlify · GitHub Actions
 
 ## License
 
