@@ -1,0 +1,12 @@
+# Backend (Maven)
+backend/target/
+*.class
+
+# Frontend (handled by frontend/.gitignore too, kept here for safety)
+frontend/node_modules/
+frontend/dist/
+
+.idea/
+*.iml
+.vscode/
+.DS_Store
