@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { getCourse } from "../api/courses";
 import { ApiError } from "../api/client";
-import { createStudent, enroll } from "../api/enrollments";
+import { createStudent, enroll, findStudentByEmail } from "../api/enrollments";
 import type { Course } from "../api/types";
-import { LevelBadge } from "./LevelBadge";
+import { LEVEL_GRADIENTS, LEVEL_LABELS } from "../lib/levelTheme";
+import { setCurrentStudentId } from "../lib/currentStudent";
 
 interface Props {
   courseId: number;
@@ -26,8 +27,18 @@ export function CourseDetail({ courseId, onBack }: Props) {
     setEnrolling(true);
     setEnrollMessage(null);
     try {
-      const student = await createStudent(name, email);
+      let student;
+      try {
+        student = await createStudent(name, email);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          student = await findStudentByEmail(email);
+        } else {
+          throw err;
+        }
+      }
       await enroll(student.id, courseId);
+      setCurrentStudentId(student.id);
       setEnrollMessage({ text: `Enrolled! Welcome to ${course?.title}, ${student.name}.`, ok: true });
       setName("");
       setEmail("");
@@ -44,16 +55,18 @@ export function CourseDetail({ courseId, onBack }: Props) {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <button onClick={onBack} className="mb-6 text-sm font-medium text-indigo-600 hover:text-indigo-800">
         ← Back to courses
       </button>
 
-      <div className="mb-2 flex items-center gap-3">
-        <h2 className="font-serif text-2xl font-semibold text-stone-900">{course.title}</h2>
-        <LevelBadge level={course.level} />
+      <div className={`mb-8 rounded-2xl bg-gradient-to-br ${LEVEL_GRADIENTS[course.level]} px-6 py-8 text-white shadow-md sm:px-8`}>
+        <span className="text-xs font-semibold tracking-wide text-white/80 uppercase">
+          {LEVEL_LABELS[course.level]} · {course.level} · {course.durationHours}h
+        </span>
+        <h2 className="mt-1 font-serif text-2xl font-semibold sm:text-3xl">{course.title}</h2>
+        <p className="mt-2 max-w-2xl text-sm text-white/90 sm:text-base">{course.description}</p>
       </div>
-      <p className="mb-8 text-stone-600">{course.description}</p>
 
       <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr]">
         <section>
@@ -63,12 +76,18 @@ export function CourseDetail({ courseId, onBack }: Props) {
           ) : (
             <ol className="space-y-3">
               {course.lessons.map((lesson, index) => (
-                <li key={lesson.id} className="rounded-lg border border-stone-200 bg-white p-4">
+                <li
+                  key={lesson.id}
+                  className="animate-fade-in-up rounded-lg border border-stone-200 bg-white p-4 transition hover:border-indigo-300 hover:shadow-sm"
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-semibold text-indigo-500">{index + 1}</span>
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-600">
+                      {index + 1}
+                    </span>
                     <strong className="text-stone-900">{lesson.title}</strong>
                   </div>
-                  <p className="mt-1 text-sm text-stone-600">{lesson.content}</p>
+                  <p className="mt-1 pl-7 text-sm text-stone-600">{lesson.content}</p>
                 </li>
               ))}
             </ol>
@@ -85,7 +104,7 @@ export function CourseDetail({ courseId, onBack }: Props) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:outline-none"
               />
             </div>
             <div>
@@ -95,21 +114,22 @@ export function CourseDetail({ courseId, onBack }: Props) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:outline-none"
               />
             </div>
             <button
               type="submit"
               disabled={enrolling}
-              className="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-60"
+              className="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:scale-[1.02] hover:bg-indigo-700 active:scale-[0.98] disabled:scale-100 disabled:opacity-60"
             >
               {enrolling ? "Enrolling…" : "Enroll"}
             </button>
           </form>
           {enrollMessage && (
             <p
-              className={`mt-3 rounded-lg px-3 py-2 text-sm ${
-                enrollMessage.ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+              key={enrollMessage.text}
+              className={`animate-pop-in mt-3 rounded-lg px-3 py-2 text-sm font-medium ${
+                enrollMessage.ok ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-red-50 text-red-700 ring-1 ring-red-200"
               }`}
             >
               {enrollMessage.text}

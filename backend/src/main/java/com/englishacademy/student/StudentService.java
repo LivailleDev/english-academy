@@ -24,6 +24,12 @@ public class StudentService {
         return StudentResponse.from(getOrThrow(id));
     }
 
+    public StudentResponse findByEmail(String email) {
+        return studentRepository.findByEmail(email)
+                .map(StudentResponse::from)
+                .orElseThrow(() -> new StudentNotFoundException(email));
+    }
+
     @Transactional
     public StudentResponse create(CreateStudentRequest request) {
         if (studentRepository.existsByEmail(request.email())) {

@@ -40,3 +40,22 @@ export interface ProblemDetail {
   detail: string;
   status: number;
 }
+
+export type LessonCategory = "GRAMMAR" | "VOCABULARY" | "PRONUNCIATION" | "IDIOMS" | "CULTURE";
+
+export interface ExtraLesson {
+  id: number;
+  title: string;
+  description: string;
+  content: string;
+  category: LessonCategory;
+  durationMinutes: number;
+}
+
+export interface StudyModule {
+  id: number;
+  title: string;
+  description: string;
+  level: CourseLevel;
+  topics: string[];
+}

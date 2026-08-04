@@ -1,9 +1,11 @@
 package com.englishacademy.common;
 
 import com.englishacademy.course.CourseNotFoundException;
+import com.englishacademy.extralesson.ExtraLessonNotFoundException;
 import com.englishacademy.student.AlreadyEnrolledException;
 import com.englishacademy.student.DuplicateEmailException;
 import com.englishacademy.student.StudentNotFoundException;
+import com.englishacademy.studymodule.StudyModuleNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({CourseNotFoundException.class, StudentNotFoundException.class})
+    @ExceptionHandler({
+            CourseNotFoundException.class,
+            StudentNotFoundException.class,
+            ExtraLessonNotFoundException.class,
+            StudyModuleNotFoundException.class
+    })
     public ProblemDetail handleNotFound(RuntimeException ex, HttpServletRequest request) {
         return problem(HttpStatus.NOT_FOUND, "Resource not found", ex.getMessage(), request);
     }
